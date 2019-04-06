@@ -28,6 +28,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "AOCLUtils/aocl_utils.h"
+
 
 
 #define MAX_NAME_LEN 1000
@@ -406,7 +408,7 @@ char *read_file(const char *filename)
 static int printed_compiler_output_message = 0;
 
 cl_kernel kernel_from_string(cl_context ctx,
-    char const *knl, char const *knl_name, char const *options)
+    char const *knl, char const *knl_name, char const *options, int use_fpga)
 {
   // create an OpenCL program (may have multiple kernels)
   size_t sizes[] = { strlen(knl) };
@@ -418,7 +420,12 @@ cl_kernel kernel_from_string(cl_context ctx,
   }
 
   cl_int status;
-  cl_program program = clCreateProgramWithSource(ctx, 1, &knl, sizes, &status);
+  if (use_fpga == 1){
+    // does not work with multiple devices
+    cl_program program = createProgramFromBinary(ctx, knl_name, &device, sizes);
+  } else {
+    cl_program program = clCreateProgramWithSource(ctx, 1, &knl, sizes, &status);
+  }
   CHECK_CL_ERROR(status, "clCreateProgramWithSource");
 
   // build it

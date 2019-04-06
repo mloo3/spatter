@@ -50,6 +50,7 @@ size_t local_work_size = 1;
 
 unsigned int shmem = 0;
 int random_flag = 0;
+int use_fpga_intel = 0;
 
 int json_flag = 0, validate_flag = 0, print_header_flag = 1;
 
@@ -156,6 +157,10 @@ int main(int argc, char **argv)
     */
 
     /* Create a context and corresponding queue */
+    if (use_fpga_intel == 1) {
+        initialize_dev_ocl(platform_string, device_string);
+    }
+    // may use USE_OPENCL
     #ifdef USE_OPENCL
     if (backend == OPENCL) {
     	initialize_dev_ocl(platform_string, device_string);
@@ -245,7 +250,7 @@ int main(int argc, char **argv)
     if (backend == OPENCL) {
         //kernel_string = ocl_kernel_gen(index_len, vector_len, kernel);
         kernel_string = read_file(kernel_file);
-        sgp = kernel_from_string(context, kernel_string, kernel_name, NULL);
+        sgp = kernel_from_string(context, kernel_string, kernel_name, NULL, use_fpga_intel);
         if (kernel_string) {
             free(kernel_string);
         }
@@ -342,6 +347,7 @@ int main(int argc, char **argv)
             SET_7_KERNEL_ARGS(sgp, target.dev_ptr_opencl, source.dev_ptr_opencl,
                     ti.dev_ptr_opencl, si.dev_ptr_opencl, ot, os, oi);
 
+            // maybe use clEnqueueSVMMap instead?
             CALL_CL_GUARDED(clEnqueueNDRangeKernel, (queue, sgp, work_dim, NULL, 
                        &global_work_size, &local_work_size, 
                       0, NULL, &e)); 
