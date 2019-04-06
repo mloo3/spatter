@@ -65,9 +65,9 @@
 
 
 /* The array for the state vector */
-static unsigned long long mt[NN]; 
+static __thread unsigned long long mt[NN]; 
 /* mti==NN+1 means mt[NN] is not initialized */
-static int mti=NN+1; 
+static __thread int mti=NN+1; 
 
 /* initializes mt[NN] with a seed */
 void init_genrand64(unsigned long long seed)
@@ -109,7 +109,7 @@ unsigned long long genrand64_int64(void)
 {
     int i;
     unsigned long long x;
-    static unsigned long long mag01[2]={0ULL, MATRIX_A};
+    static __thread unsigned long long mag01[2]={0ULL, MATRIX_A};
 
     if (mti >= NN) { /* generate NN words at one time */
 

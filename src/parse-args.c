@@ -5,6 +5,7 @@
 #include <strings.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 #include "parse-args.h"
 #include "backend-support-tests.h"
 
@@ -12,12 +13,15 @@
 #include "cuda-backend.h"
 #endif
 
-#define SOURCE     1000
-#define TARGET     1001 
-#define INDEX      1002
-#define BLOCK      1003
-#define SEED       1004
-#define VALIDATE   1005
+#define SOURCE      1000
+#define TARGET      1001 
+#define INDEX       1002
+#define BLOCK       1003
+#define SEED        1004
+#define VALIDATE    1005
+#define MS1_PATTERN 1006
+#define MS1_GAP     1007
+#define MS1_RUN     1008
 
 #define INTERACTIVE "INTERACTIVE"
 
@@ -25,18 +29,21 @@ extern char platform_string[STRING_SIZE];
 extern char device_string[STRING_SIZE];
 extern char kernel_file[STRING_SIZE];
 extern char kernel_name[STRING_SIZE];
+extern char config_file[STRING_SIZE];
 
 extern size_t source_len;
 extern size_t target_len;
 extern size_t index_len;
-extern size_t block_len;
 extern size_t wrap;
 extern size_t seed;
 extern size_t vector_len;
 extern size_t R;
-extern size_t N;
 extern size_t local_work_size;
 extern size_t workers;
+extern size_t ms1_gap;
+extern size_t ms1_run;
+extern int ms1_flag;
+extern int config_flag;
 extern int json_flag;
 extern int validate_flag;
 extern int print_header_flag;
@@ -71,7 +78,6 @@ void parse_args(int argc, char **argv)
     source_len = 0;
     target_len = 0;
     index_len  = 0;
-    block_len  = 1;
     seed       = time(NULL); 
     err_file   = stderr;
 
@@ -94,21 +100,20 @@ void parse_args(int argc, char **argv)
         {"cl-device",       required_argument, NULL, 'd'},
         {"kernel-file",     required_argument, NULL, 'f'},
         {"kernel-name",     required_argument, NULL, 'k'},
-        {"source-len",      required_argument, NULL, SOURCE},
-        {"target-len",      required_argument, NULL, TARGET},
-        {"index-len",       required_argument, NULL, INDEX},
-        {"block-len",       required_argument, NULL, BLOCK},
         {"seed",            required_argument, NULL, SEED},
         {"vector-len",      required_argument, NULL, 'v'},
         {"generic-len",     required_argument, NULL, 'l'},
         {"runs",            required_argument, NULL, 'R'},
-        {"loops",           required_argument, NULL, 'N'},
         {"workers",         required_argument, NULL, 'W'},
         {"wrap",            required_argument, NULL, 'w'},
         {"op",              required_argument, NULL, 'o'},
-        {"sparsity",        required_argument, NULL, 's'},
+        {"uniform-stride",  required_argument, NULL, 's'},
         {"local-work-size", required_argument, NULL, 'z'},
         {"shared-mem",      required_argument, NULL, 'm'},
+        {"ms1-pattern",     no_argument,       NULL, MS1_PATTERN},
+        {"ms1-gap",         required_argument, NULL, MS1_GAP},
+        {"ms1-run",         required_argument, NULL, MS1_RUN},
+        {"config-file",     required_argument, NULL, 't'},
         {"supress-errors",  no_argument,       NULL, 'q'},
         {"random",          no_argument,       NULL, 'y'},
         {"validate",        no_argument, &validate_flag, 1},
@@ -144,6 +149,12 @@ void parse_args(int argc, char **argv)
                         error("You did not compile with support for CUDA", 1);
                     }
                     backend = CUDA;
+                }
+                else if(!strcasecmp("SERIAL", optarg)){
+                    if (!sg_serial_support()) {
+                        error("You did not compile with support for serial execution", 1);
+                    }
+                    backend = SERIAL;
                 }
                 break;
             case 'p':
@@ -184,13 +195,9 @@ void parse_args(int argc, char **argv)
                 sscanf(optarg, "%zu", &source_len);
                 break;
             case TARGET:
-                sscanf(optarg, "%zu", &target_len);
                 break;
             case INDEX:
                 sscanf(optarg, "%zu", &index_len);
-                break;
-            case BLOCK:
-                sscanf(optarg, "%zu", &block_len);
                 break;
             case SEED:
                 sscanf(optarg, "%zu", &seed);
@@ -204,9 +211,6 @@ void parse_args(int argc, char **argv)
                 break;
             case 'R':
                 sscanf(optarg, "%zu", &R);
-                break;
-            case 'N':
-                sscanf(optarg, "%zu", &N);
                 break;
             case 'W':
                 sscanf(optarg, "%zu", &workers);
@@ -234,12 +238,29 @@ void parse_args(int argc, char **argv)
                 break;
             case 'u':
                 use_fpga_intel = 1;
+            case MS1_PATTERN:
+                ms1_flag = 1;
+                break;
+            case MS1_RUN:
+                sscanf(optarg, "%zu", &ms1_run);
+                break;
+            case MS1_GAP:
+                sscanf(optarg, "%zu", &ms1_gap);
+                break;
+            case 't':
+                safestrcopy(config_file, optarg);
+                config_flag = 1;
                 break;
             default:
                 break;
 
         }
 
+    }
+
+    if (generic_len <= 0) {
+        error ("Length not specified. Default is 16 (elements)", 0);
+        generic_len = 16;
     }
 
     /* Check argument coherency */
@@ -256,9 +277,13 @@ void parse_args(int argc, char **argv)
             backend = OPENMP;
             error ("No backend specified, guessing OpenMP", 0);
         }
+        else if (sg_serial_support()) { 
+            backend = SERIAL;
+            error ("No backend specified, guessing Serial", 0);
+        }
         else
         {
-            error ("No backends available! Please recompile sgbench with at least one backend.", 1);
+            error ("No backends available! Please recompile spatter with at least one backend.", 1);
         }
     }
 
@@ -304,35 +329,18 @@ void parse_args(int argc, char **argv)
     }
 
     //Check buffer lengths
-    if (generic_len <= 0){
-
-        if (source_len <= 0 && target_len <= 0 && index_len <= 0) {
-            error ("Please specifiy at least one of : src_len, target_len, idx_len", 1);
-        }
-        if (source_len > 0 && target_len <= 0) {
-            target_len = source_len;
-        }
-        if (source_len > 0 && index_len <= 0) {
-            index_len = source_len;
-        }
-        if (target_len > 0 && source_len <= 0) {
-            source_len = target_len;
-        }
-        if (target_len > 0 && index_len <= 0) {
-            index_len = target_len;
-        }
-        if (index_len > 0 && source_len <= 0) {
-            source_len = index_len;
-        }
-        if (index_len > 0 && target_len <= 0) {
-            target_len = index_len;
+    if (ms1_flag) {
+        if (kernel == SCATTER) {
+            source_len = generic_len;
+            target_len = (generic_len / ms1_run) * (ms1_run + ms1_gap);
+            index_len = generic_len;
+        } else if (kernel == GATHER) {
+            target_len = generic_len;
+            source_len = (generic_len / ms1_run) * (ms1_run + ms1_gap);
+            index_len = generic_len;
         }
     }
     else{
-        if (source_len > 0 || target_len > 0 || index_len > 0) {
-            error ("If you specify a generic length, source_len, target_len, and index_len will be ignored.", 0);
-        }
-
         index_len = generic_len;
         if (kernel == SCATTER) {
             target_len = generic_len * sparsity;
@@ -348,16 +356,17 @@ void parse_args(int argc, char **argv)
         }
     }
 
-    if(block_len < 1){
-        error("Invalid block-len", 1);
-    }
     if (workers < 1){
         error("Too few workers. Changing to 1.", 0);
         workers = 1;
     }
+    
+    if(ms1_flag) {
+        assert(ms1_run > 0);
+        assert(ms1_gap > 0);
+    }
 
     /* Seed rand */
     srand(seed);
-
 
 }
