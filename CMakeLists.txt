@@ -9,6 +9,7 @@ SET (USE_CUDA 0 CACHE BOOL "If set, builds with CUDA support")
 SET (USE_OPENCL 0 CACHE BOOL "If set, builds with OpenCL support")
 SET (USE_OPENMP 0 CACHE BOOL "If set, builds with OpenMP support")
 SET (USE_SERIAL 0 CACHE BOOL "If set, builds with Serial support")
+SET (USE_FPGA 0 CACHE BOOL "If set, builds with FPGA support")
 
 ADD_DEFINITIONS (-DSG_DATA_TYPE=double)
 
@@ -16,7 +17,7 @@ ADD_DEFINITIONS (-DSG_DATA_TYPE=double)
 IF (NOT (USE_CUDA OR USE_OPENCL OR USE_OPENMP OR USE_SERIAL))
     MESSAGE (
         FATAL_ERROR
-            "You must build with support for at least one backend. Pass at least one of -DUSE_CUDA=1 -DUSE_OPENCL=1 -DUSE_SERIAL=1 or -DUSE_OPENMP=1 to cmake."
+        "You must build with support for at least one backend. Pass at least one of -DUSE_CUDA=1 -DUSE_OPENCL=1 -DUSE_SERIAL=1 -DUSE_OPENMP=1 or -DUSE_FPGA=1 to cmake."
     )
 ENDIF ()
 
@@ -136,6 +137,34 @@ IF (USE_CUDA)
     MESSAGE ("Using Cuda")
 ENDIF ()
 
+# Enable FPGA 
+# NEED TO CHANGE STUFF STILL
+IF (USE_FPGA)
+    ADD_DEFINITIONS (-DUSE_FPGA)
+    # Point the compiler to the include and library directories
+    INCLUDE_DIRECTORIES ($ENV{OCL_INCL} opencl)
+    # include_directories(/usr/lib/gcc/x86_64-linux-gnu/5/include/)
+    LINK_DIRECTORIES ($ENV{OCL_LIB})
+    # Pull the OpenCL-specific files into the build
+    FILE (GLOB BACKEND_C_FILES_FPGA fpga/*.c)
+    FILE (GLOB BACKEND_H_FILES_FPGA fpga/*.h)
+
+    # Copy over the OpenCL kernels used with the binary
+    FILE (GLOB OCL_KERNELS fpga/*.cl)
+    FILE (
+        COPY
+        ${OCL_KERNELS}
+        include/sgtype.h
+        DESTINATION
+        ${CMAKE_CURRENT_BINARY_DIR}/kernels/
+    )
+    FILE (GLOB C_AOCL common/inc/AOCLUtils/*.h)
+    FILE (GLOB H_AOCL common/stc/AOCLUtils/*.c)
+
+    MESSAGE ("Using FPGA")
+ENDIF ()
+
+
 # Include the location of stddef.h include_directories(/usr/include/linux/)
 
 # Glob for the source files and headers in the current directory and kernels
@@ -153,6 +182,11 @@ SET (
     ${BACKEND_H_FILES_SERIAL}
     ${CUDA_CU_FILES}
     ${CUDA_C_FILES}
+    # may need to change names
+    ${BACKEND_C_FILES_FPGA}
+    ${BACKEND_H_FILES_FPGA}
+    ${C_AOCL}
+    ${H_AOCL}
 )
 
 # Specify the executable and source files
@@ -166,6 +200,10 @@ set_property(TARGET ${TRGT} PROPERTY C_STANDARD 11)
 IF (USE_OPENCL)
     TARGET_LINK_LIBRARIES (${TRGT} LINK_PUBLIC OpenCL)
 ENDIF ()
+
+# !!
+IF (USE_FPGA)
+    TARGET_LINK_LIBRARIES (${TRGT} LINK_PUBLIC OpenCL)
 
 IF (USE_CUDA)
     FIND_LIBRARY (

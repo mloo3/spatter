@@ -4,4 +4,5 @@ int sg_cuda_support();
 int sg_opencl_support();
 int sg_openmp_support();
 int sg_serial_support();
+int sg_fpga_support();
 #endif

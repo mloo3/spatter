@@ -37,3 +37,11 @@ int sg_serial_support()
     return 0;
 #endif
 }
+
+int sg_fpga_support()
+{
+#if defined USE_FPGA
+    return 1;
+#else
+    return 0;
+}

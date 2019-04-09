@@ -48,7 +48,7 @@ extern int json_flag;
 extern int validate_flag;
 extern int print_header_flag;
 extern int random_flag;
-extern int use_fpga_intel;
+/* extern int use_fpga_intel; */
 extern unsigned int shmem;
 extern enum sg_op op;
 
@@ -155,6 +155,12 @@ void parse_args(int argc, char **argv)
                         error("You did not compile with support for serial execution", 1);
                     }
                     backend = SERIAL;
+                }
+                else if(!strcasecmp("FPGA", optarg)){
+                    if (!sg_serial_support()) {
+                        error("You did not compile with support for FPGA", 1);
+                    }
+                    backend = FPGA;
                 }
                 break;
             case 'p':
@@ -281,13 +287,18 @@ void parse_args(int argc, char **argv)
             backend = SERIAL;
             error ("No backend specified, guessing Serial", 0);
         }
+        else if (sg_fpga_support()) { 
+            backend = FPGA;
+            error ("No backend specified, guessing Serial", 0);
+        }
         else
         {
             error ("No backends available! Please recompile spatter with at least one backend.", 1);
         }
     }
 
-    if(backend == OPENCL){
+    #if defined(USE_OPENCL) || defined(USE_FPGA)
+    if(backend == OPENCL || backend == FPGA){
         if(!strcasecmp(platform_string, "NONE")){
             safestrcopy(platform_string, INTERACTIVE);
             safestrcopy(device_string, INTERACTIVE);
@@ -297,6 +308,7 @@ void parse_args(int argc, char **argv)
             safestrcopy(device_string, INTERACTIVE);
         }
     }
+    #endif
 
     #ifdef USE_CUDA
     if (backend == CUDA) {

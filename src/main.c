@@ -20,11 +20,14 @@
 	#include "../openmp/openmp_kernels.h"
 #endif
 #if defined ( USE_CUDA )
-    #include <cuda.h>
-    #include "../cuda/cuda-backend.h"
+        #include <cuda.h>
+        #include "../cuda/cuda-backend.h"
 #endif
 #if defined( USE_SERIAL )
 	#include "../serial/serial-kernels.h"
+#endif
+#if defined( USE_FPGA )
+        #include "../fpga/fpga-backend.h" 
 #endif
 
 #define ALIGNMENT (64)
@@ -55,7 +58,7 @@ size_t ms1_run = 0;
 
 unsigned int shmem = 0;
 int random_flag = 0;
-int use_fpga_intel = 0;
+/* int use_fpga_intel = 0; */
 int ms1_flag = 0;
 int config_flag = 0;
 
@@ -142,7 +145,7 @@ int main(int argc, char **argv)
 
     size_t cpu_cache_size = 30720 * 1000; 
     size_t cpu_flush_size = cpu_cache_size * 8;
-    #ifdef USE_OPENCL
+    #if defined(USE_OPENCL) || defined(USE_FPGA)
 	cl_ulong device_cache_size = 0;
     	cl_uint work_dim = 1;
     #endif
@@ -164,10 +167,6 @@ int main(int argc, char **argv)
     */
 
     /* Create a context and corresponding queue */
-    if (use_fpga_intel == 1) {
-        initialize_dev_ocl(platform_string, device_string);
-    }
-    // may use USE_OPENCL
     #ifdef USE_OPENCL
     if (backend == OPENCL) {
     	initialize_dev_ocl(platform_string, device_string);
@@ -182,6 +181,14 @@ int main(int argc, char **argv)
 
         printf("sm's: %d\n", prop.multiProcessorCount);
         */
+    }
+    #endif
+
+    #ifdef USE_FPGA
+    if (backend == FPGA) {
+    /* if (use_fpga_intel == 1) { */
+        // change name
+        initialize_dev_ocl(platform_string, device_string);
     }
     #endif
 
@@ -225,6 +232,18 @@ int main(int argc, char **argv)
     /* Create the kernel */
     #ifdef USE_OPENCL
     if (backend == OPENCL) {
+        //kernel_string = ocl_kernel_gen(index_len, vector_len, kernel);
+        kernel_string = read_file(kernel_file);
+        sgp = kernel_from_string(context, kernel_string, kernel_name, NULL, use_fpga_intel);
+        if (kernel_string) {
+            free(kernel_string);
+        }
+    }
+    #endif
+
+    #ifdef USE_FPGA
+    // change names !!
+    if (backend == FPGA) {
         //kernel_string = ocl_kernel_gen(index_len, vector_len, kernel);
         kernel_string = read_file(kernel_file);
         sgp = kernel_from_string(context, kernel_string, kernel_name, NULL, use_fpga_intel);
@@ -314,6 +333,12 @@ int main(int argc, char **argv)
         cudaDeviceSynchronize();
     }
     #endif
+
+    #ifdef USE_FPGA
+    if (backend == FPGA) {
+        // change names !!
+        create_dev_buffers_ocl(&source, &target, &si, &ti);
+    }
 
     
     /* =======================================
@@ -481,6 +506,42 @@ int main(int argc, char **argv)
     }
     #endif // USE_SERIAL
     
+    /* Time OpenCL Kernel */
+    #ifdef USE_FPGA
+    if (backend == FPGA) {
+        // change names !!
+        global_work_size = si.len / vector_len;
+        assert(global_work_size > 0);
+        cl_ulong start = 0, end = 0; 
+        for (int i = 0; i <= R; i++) {
+             
+            start = 0; end = 0;
+
+           cl_event e = 0; 
+
+            SET_4_KERNEL_ARGS(sgp, target.dev_ptr_opencl, source.dev_ptr_opencl,
+                    ti.dev_ptr_opencl, si.dev_ptr_opencl);
+
+            // maybe use clEnqueueSVMMap instead?
+            CALL_CL_GUARDED(clEnqueueNDRangeKernel, (queue, sgp, work_dim, NULL, 
+                       &global_work_size, &local_work_size, 
+                      0, NULL, &e)); 
+            clWaitForEvents(1, &e);
+
+            CALL_CL_GUARDED(clGetEventProfilingInfo, 
+                    (e, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL));
+            CALL_CL_GUARDED(clGetEventProfilingInfo, 
+                    (e, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL));
+
+            cl_ulong time_ns = end - start;
+            double time_s = time_ns / 1000000000.;
+            if (i!=0) report_time(time_s, source.size, target.size, si.size, vector_len);
+
+
+        }
+
+    }
+    #endif // USE_FPGA
 
     /* =======================================
 	VALIDATION

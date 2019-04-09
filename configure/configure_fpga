@@ -2,8 +2,6 @@
 # Execute from the main directory using ./configure/configure_ocl
 
 #Use the NVIDIA compiler settings
-#not sure if i need this
-#may change to 1
 . setenv_ocl.sh 3
 
 BUILD_DIR=build_ocl

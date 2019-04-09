@@ -22,6 +22,7 @@ enum sg_backend
     OPENMP, /**< OpenMP CPU Backend */
     CUDA,   /**< CUDA Backend */
     SERIAL,   /**< SERIAL Backend */
+    FPGA,   /**< FPGA Backend */
     INVALID_BACKEND /**< Used as a default backend */
 };
 
