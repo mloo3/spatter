@@ -7,7 +7,7 @@
 #ifndef FPGA_BACKEND_H
 #define FPGA_BACKEND_H
 
-#include "cl-helper.h"
+#include "../opencl/cl-helper.h"
 #include "sgtype.h"
 #include "sgbuf.h"
 
@@ -19,8 +19,8 @@
     
     cl_event e;
 
-void initialize_dev_ocl(char* platform_string, char* device_string);
+void initialize_dev_fpga(char* platform_string, char* device_string);
 
-void create_dev_buffers_ocl(sgDataBuf *source, sgDataBuf *target, sgIndexBuf *si, sgIndexBuf *ti, size_t block_len);
+void create_dev_buffers_fpga(sgDataBuf *source, sgDataBuf *target, sgIndexBuf *si, sgIndexBuf *ti, size_t block_len);
 
 #endif //end OCL_BACKEND

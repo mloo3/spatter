@@ -48,7 +48,6 @@ extern int json_flag;
 extern int validate_flag;
 extern int print_header_flag;
 extern int random_flag;
-/* extern int use_fpga_intel; */
 extern unsigned int shmem;
 extern enum sg_op op;
 
@@ -118,7 +117,6 @@ void parse_args(int argc, char **argv)
         {"random",          no_argument,       NULL, 'y'},
         {"validate",        no_argument, &validate_flag, 1},
         {"interactive",     no_argument,       0, 'i'},
-        {"use-fpga-intel",  no_argument,       NULL,  'u'},
         {0, 0, 0, 0}
     };  
 
@@ -126,8 +124,7 @@ void parse_args(int argc, char **argv)
     int option_index = 0;
 
     while(c != -1){
-
-    	c = getopt_long_only (argc, argv, "W:l:k:s:qv:R:p:d:f:b:z:m:yw:u",
+    	c = getopt_long_only (argc, argv, "W:l:k:s:qv:R:p:d:f:b:z:m:yw:",
                          long_options, &option_index);
 
         switch(c){
@@ -242,8 +239,6 @@ void parse_args(int argc, char **argv)
             case 'q':
                 err_file = fopen("/dev/null", "w");
                 break;
-            case 'u':
-                use_fpga_intel = 1;
             case MS1_PATTERN:
                 ms1_flag = 1;
                 break;
