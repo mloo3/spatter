@@ -4,7 +4,8 @@ sgbench
 docs/*
 build/*
 bin/*
-build_cuda/
-build_ocl/
-build_omp/
-build_omp_arm/
+build*/
+#build_cuda/
+#build_ocl/
+#build_omp/
+#build_omp_arm/

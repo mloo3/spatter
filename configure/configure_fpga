@@ -1,23 +1,31 @@
-# Configure file for compiling with OpenCL
-# Execute from the main directory using ./configure/configure_ocl
+# Configure file for compiling with FPGA
+# Execute from the main directory using ./configure/configure_fpga
 
 #Use the NVIDIA compiler settings
+#unsure about the environment !!
 . setenv_ocl.sh 3
 
-BUILD_DIR=build_ocl
+BACKEND=fpga
+COMPILER=gnu
+BUILD_DIR=build_${BACKEND}_${COMPILER}
 
 mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 rm -rf CMake* 
 
+CC=gcc
+CXX=g++
+FLAGS="-O3"
+
 #Make sure to use tabs rather than spaces for newline entries
 cmake -D CMAKE_BUILD_TYPE=Release \
-	-D CMAKE_CXX_COMPILER=nvcc \
-	-D CMAKE_CXX_FLAGS="-O3 " \
-	-D USE_OPENCL=1 \
+# where i need to change !!
+	-D CMAKE_C_COMPILER=${CC} \
+	-D CMAKE_CXX_COMPILER=${CXX} \
+	-D CMAKE_C_FLAGS=${FLAGS} \
+	-D CMAKE_CXX_FLAGS=${FLAGS} \
+	-D USE_OPENCL=0 \
 	-D USE_OPENMP=0 \
+	-D USE_CUDA=0 \
+	-D USE_SERIAL=0 \
+	-D USE_FPGA=1 \
 	..    
-
-#Unused options
-#      -D USE_KOKKOS=0 -D KOKKOS_DIRECTORY=${KOKKOS_DIR}   \
-#      -D KOKKOS_WRAPPER=${KOKKOS_DIR}/bin/nvcc_wrapper    \
-#      -D USE_CUDA=0 -D CUDA_FLAGS="-arch sm_70"           \

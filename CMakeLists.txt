@@ -185,6 +185,7 @@ SET (
     # may need to change names
     ${BACKEND_C_FILES_FPGA}
     ${BACKEND_H_FILES_FPGA}
+    # for AOCL util
     ${C_AOCL}
     ${H_AOCL}
 )
