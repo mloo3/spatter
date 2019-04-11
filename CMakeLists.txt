@@ -150,16 +150,16 @@ IF (USE_FPGA)
     FILE (GLOB BACKEND_H_FILES_FPGA fpga/*.h)
 
     # Copy over the OpenCL kernels used with the binary
-    FILE (GLOB OCL_KERNELS fpga/*.cl)
+    FILE (GLOB FPGA_KERNELS fpga/*.cl)
     FILE (
         COPY
-        ${OCL_KERNELS}
+        ${FPGA_KERNELS}
         include/sgtype.h
         DESTINATION
         ${CMAKE_CURRENT_BINARY_DIR}/kernels/
     )
-    FILE (GLOB C_AOCL common/inc/AOCLUtils/*.h)
-    FILE (GLOB H_AOCL common/stc/AOCLUtils/*.c)
+    FILE (GLOB H_AOCL AOCLUtils/inc/*.h)
+    FILE (GLOB C_AOCL AOCLUtils/src/*.c)
 
     MESSAGE ("Using FPGA")
 ENDIF ()
