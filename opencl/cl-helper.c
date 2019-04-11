@@ -28,7 +28,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "AOCLUtils/aocl_utils.h"
+#include "../AOCLUtils/inc/aocl_utils.h"
 
 
 
