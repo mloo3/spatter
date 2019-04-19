@@ -1,6 +1,5 @@
 # 3.8 is specified since this is the first version with CUDA support
 CMAKE_MINIMUM_REQUIRED (VERSION 3.8 FATAL_ERROR)
-
 #Set target project name
 SET (TRGT spatter)
 
@@ -14,7 +13,7 @@ SET (USE_FPGA 0 CACHE BOOL "If set, builds with FPGA support")
 ADD_DEFINITIONS (-DSG_DATA_TYPE=double)
 
 # Check for support for at least one backend
-IF (NOT (USE_CUDA OR USE_OPENCL OR USE_OPENMP OR USE_SERIAL))
+IF (NOT (USE_CUDA OR USE_OPENCL OR USE_OPENMP OR USE_SERIAL OR USE_FPGA))
     MESSAGE (
         FATAL_ERROR
         "You must build with support for at least one backend. Pass at least one of -DUSE_CUDA=1 -DUSE_OPENCL=1 -DUSE_SERIAL=1 -DUSE_OPENMP=1 or -DUSE_FPGA=1 to cmake."
@@ -140,16 +139,19 @@ ENDIF ()
 # Enable FPGA 
 # NEED TO CHANGE STUFF STILL
 IF (USE_FPGA)
+    # !!
     ADD_DEFINITIONS (-DUSE_FPGA)
     # Point the compiler to the include and library directories
-    INCLUDE_DIRECTORIES ($ENV{OCL_INCL} opencl)
+    # INCLUDE_DIRECTORIES ($ENV{OCL_INCL} opencl)
+    INCLUDE_DIRECTORIES (fpga)
     # include_directories(/usr/lib/gcc/x86_64-linux-gnu/5/include/)
-    LINK_DIRECTORIES ($ENV{OCL_LIB})
+    # LINK_DIRECTORIES ($ENV{OCL_LIB})
     # Pull the OpenCL-specific files into the build
     FILE (GLOB BACKEND_C_FILES_FPGA fpga/*.c)
     FILE (GLOB BACKEND_H_FILES_FPGA fpga/*.h)
 
     # Copy over the OpenCL kernels used with the binary
+    # because i will be emulating is this part necessary?? !!
     FILE (GLOB FPGA_KERNELS fpga/*.cl)
     FILE (
         COPY
@@ -205,6 +207,7 @@ ENDIF ()
 # !!
 IF (USE_FPGA)
     TARGET_LINK_LIBRARIES (${TRGT} LINK_PUBLIC OpenCL)
+ENDIF ()
 
 IF (USE_CUDA)
     FIND_LIBRARY (

@@ -1,14 +1,15 @@
 # Configure file for compiling with FPGA
 # Execute from the main directory using ./configure/configure_fpga
 
-#Use the NVIDIA compiler settings
-#unsure about the environment !!
-. setenv_ocl.sh 3
+#use intel SDK !!
+# . setenv_ocl.sh 1
+. setenv_ocl.sh 2
 
 BACKEND=fpga
 COMPILER=gnu
 BUILD_DIR=build_${BACKEND}_${COMPILER}
 
+#Create directory if needed - clean CMake cached files
 mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 rm -rf CMake* 
 
@@ -18,7 +19,6 @@ FLAGS="-O3"
 
 #Make sure to use tabs rather than spaces for newline entries
 cmake -D CMAKE_BUILD_TYPE=Release \
-# where i need to change !!
 	-D CMAKE_C_COMPILER=${CC} \
 	-D CMAKE_CXX_COMPILER=${CXX} \
 	-D CMAKE_C_FLAGS=${FLAGS} \
