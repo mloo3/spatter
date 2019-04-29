@@ -30,7 +30,11 @@ elif [ $1 == "2" ];
 then
         export PATH=:${PREVPATH}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-	export OCL_INCL=
+        export ABC="ASD"
+	export OCL_INCL=/tools/reconfig/intel/18.0/hld/host/include
+	# export OCL_INCL=/tools/reconfig/intel/18.0/hld/host/include20
+        export OCL_LIB=/tools/reconfig/intel/18.0/hld/host/linux64/lib
+        # export OCL_LIB=/tools/reconfig/intel/18.0/hld/host/arm32/lib
 elif [ $1 == "3" ];
 then
         export PATH=/usr/local/cuda/bin:${PREVPATH}

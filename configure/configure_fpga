@@ -2,8 +2,9 @@
 # Execute from the main directory using ./configure/configure_fpga
 
 #use intel SDK !!
-# . setenv_ocl.sh 1
 . setenv_ocl.sh 2
+source /tools/reconfig/intel/18.0/rg_intel_fpga_end_18.0.sh >/dev/null
+. /tools/misc/env/cmake_build.sh
 
 BACKEND=fpga
 COMPILER=gnu

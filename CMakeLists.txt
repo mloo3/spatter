@@ -88,6 +88,38 @@ IF (USE_OPENCL)
     MESSAGE ("Using OpenCL")
 ENDIF ()
 
+MESSAGE ("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
+MESSAGE (STATUS $ENV{OCL_INCL})
+MESSAGE ("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
+
+# Enable FPGA 
+IF (USE_FPGA)
+    ADD_DEFINITIONS (-DUSE_FPGA)
+    # Point the compiler to the include and library directories
+    # INCLUDE_DIRECTORIES ($ENV{OCL_INCL} opencl)
+    INCLUDE_DIRECTORIES (fpga)
+    # include_directories(/usr/lib/gcc/x86_64-linux-gnu/5/include/)
+    # LINK_DIRECTORIES ($ENV{OCL_LIB})
+    # Pull the OpenCL-specific files into the build
+    FILE (GLOB BACKEND_C_FILES_FPGA fpga/*.c)
+    FILE (GLOB BACKEND_H_FILES_FPGA fpga/*.h)
+
+    # Copy over the OpenCL kernels used with the binary
+    # because i will be emulating is this part necessary?? !!
+    FILE (GLOB FPGA_KERNELS fpga/*.cl)
+    FILE (
+        COPY
+        ${FPGA_KERNELS}
+        include/sgtype.h
+        DESTINATION
+        ${CMAKE_CURRENT_BINARY_DIR}/kernels/
+    )
+    FILE (GLOB H_AOCL AOCLUtils/inc/*.h)
+    FILE (GLOB C_AOCL AOCLUtils/src/*.cpp)
+
+    MESSAGE ("Using FPGA")
+ENDIF ()
+
 # Enable Serial backend
 IF (USE_SERIAL)
     ADD_DEFINITIONS (-DUSE_SERIAL)
@@ -136,35 +168,6 @@ IF (USE_CUDA)
     MESSAGE ("Using Cuda")
 ENDIF ()
 
-# Enable FPGA 
-# NEED TO CHANGE STUFF STILL
-IF (USE_FPGA)
-    # !!
-    ADD_DEFINITIONS (-DUSE_FPGA)
-    # Point the compiler to the include and library directories
-    # INCLUDE_DIRECTORIES ($ENV{OCL_INCL} opencl)
-    INCLUDE_DIRECTORIES (fpga)
-    # include_directories(/usr/lib/gcc/x86_64-linux-gnu/5/include/)
-    # LINK_DIRECTORIES ($ENV{OCL_LIB})
-    # Pull the OpenCL-specific files into the build
-    FILE (GLOB BACKEND_C_FILES_FPGA fpga/*.c)
-    FILE (GLOB BACKEND_H_FILES_FPGA fpga/*.h)
-
-    # Copy over the OpenCL kernels used with the binary
-    # because i will be emulating is this part necessary?? !!
-    FILE (GLOB FPGA_KERNELS fpga/*.cl)
-    FILE (
-        COPY
-        ${FPGA_KERNELS}
-        include/sgtype.h
-        DESTINATION
-        ${CMAKE_CURRENT_BINARY_DIR}/kernels/
-    )
-    FILE (GLOB H_AOCL AOCLUtils/inc/*.h)
-    FILE (GLOB C_AOCL AOCLUtils/src/*.c)
-
-    MESSAGE ("Using FPGA")
-ENDIF ()
 
 
 # Include the location of stddef.h include_directories(/usr/include/linux/)

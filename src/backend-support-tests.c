@@ -44,4 +44,5 @@ int sg_fpga_support()
     return 1;
 #else
     return 0;
+#endif
 }
