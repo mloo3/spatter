@@ -23,6 +23,6 @@
 
 void initialize_dev_fpga(char* platform_string, char* device_string);
 
-void create_dev_buffers_fpga(sgDataBuf *source, sgDataBuf *target, sgIndexBuf *si, sgIndexBuf *ti, size_t block_len);
+void create_dev_buffers_fpga(sgDataBuf *source, sgDataBuf *target, sgIndexBuf *si, sgIndexBuf *ti);
 
 #endif //end OCL_BACKEND

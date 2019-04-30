@@ -27,7 +27,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+//!!
+#ifdef __cplusplus
 #include <string>
+#endif
+#include "string.h"
 
 #include "CL/opencl.h"
 

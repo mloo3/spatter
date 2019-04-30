@@ -22,6 +22,9 @@ typedef struct sgDataBuf_t{
     #ifdef USE_OPENCL
     cl_mem dev_ptr_opencl;     /**< Points to data on the OpenCL device */ 
     #endif
+    #ifdef USE_FPGA
+    cl_mem dev_ptr_opencl;     /**< Points to data on the OpenCL device */ 
+    #endif
     #ifdef USE_CUDA
     sgData_t *dev_ptr_cuda;
     #endif    
@@ -39,6 +42,10 @@ typedef struct sgIndexBuf_t{
 
     #ifdef USE_OPENCL
     cl_mem dev_ptr_opencl;/**< Points to an index buffer on the OpenCL device */
+    #endif
+
+    #ifdef USE_FPGA
+    cl_mem dev_ptr_opencl;
     #endif
 
     size_t len;           /**< The length of the buffer (number of sgIdx_t's) */
@@ -72,6 +79,8 @@ void ms1_indices(sgIdx_t *idx, size_t len, size_t worksets, size_t run, size_t g
 size_t trace_indices( sgIdx_t *idx, size_t len, struct trace tr);
 #ifdef USE_OPENCL
 //TODO: why is it a void*? 
+cl_mem clCreateBufferSafe(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr);
+#elif defined USE_FPGA
 cl_mem clCreateBufferSafe(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr);
 #elif defined USE_CUDA
 //double* cudaCreateBufferSafe(

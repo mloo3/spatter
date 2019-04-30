@@ -333,6 +333,7 @@ int main(int argc, char **argv)
     if (backend == FPGA) {
         create_dev_buffers_fpga(&source, &target, &si, &ti);
     }
+    #endif
 
     
     /* =======================================

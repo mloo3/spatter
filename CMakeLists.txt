@@ -88,21 +88,20 @@ IF (USE_OPENCL)
     MESSAGE ("Using OpenCL")
 ENDIF ()
 
-MESSAGE ("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
-MESSAGE (STATUS $ENV{OCL_INCL})
-MESSAGE ("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
 
 # Enable FPGA 
 IF (USE_FPGA)
     ADD_DEFINITIONS (-DUSE_FPGA)
     # Point the compiler to the include and library directories
-    # INCLUDE_DIRECTORIES ($ENV{OCL_INCL} opencl)
-    INCLUDE_DIRECTORIES (fpga)
+    INCLUDE_DIRECTORIES ($ENV{OCL_INCL} opencl)
     # include_directories(/usr/lib/gcc/x86_64-linux-gnu/5/include/)
-    # LINK_DIRECTORIES ($ENV{OCL_LIB})
+    LINK_DIRECTORIES ($ENV{OCL_LIB})
     # Pull the OpenCL-specific files into the build
     FILE (GLOB BACKEND_C_FILES_FPGA fpga/*.c)
     FILE (GLOB BACKEND_H_FILES_FPGA fpga/*.h)
+
+    FILE (GLOB HELPER_C_FILES_CL opencl/cl-helper.c)
+    FILE (GLOB HELPER_H_FILES_CL opencl/cl-helper.h)
 
     # Copy over the OpenCL kernels used with the binary
     # because i will be emulating is this part necessary?? !!
@@ -193,6 +192,8 @@ SET (
     # for AOCL util
     ${C_AOCL}
     ${H_AOCL}
+    ${HELPER_C_FILES_CL}
+    ${HELPER_H_FILES_CL}
 )
 
 # Specify the executable and source files

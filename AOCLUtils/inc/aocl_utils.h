@@ -24,9 +24,9 @@
 #ifndef AOCL_UTILS_H
 #define AOCL_UTILS_H
 // inc/
-#include "inc/opencl.h"
-#include "inc/scoped_ptrs.h"
-#include "inc/options.h"
+#include "opencl.h"
+#include "scoped_ptrs.h"
+#include "options.h"
 
 #endif
 

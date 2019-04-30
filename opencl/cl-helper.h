@@ -147,7 +147,7 @@ char *read_file(const char *filename);
  * is aborted.
  */
 cl_kernel kernel_from_string(cl_context ctx, 
-    char const *knl, char const *knl_name, char const *options);
+    char const *knl, char const *knl_name, char const *options, int use_fpga);
 
 /** @brief Print information about a device.
  */

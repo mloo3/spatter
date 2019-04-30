@@ -10,9 +10,9 @@ USERNAME=`whoami`
 PREVPATH=/home/$USERNAME/local/cmake/bin:/home/$USERNAME/bin:/home/$USERNAME/.local/bin:/home/$USERNAME/bin:/home/$USERNAME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/snap/bin
 PREVLIB=/usr/lib/x86_64-linux-gnu:/usr/local/lib:/usr/lib64:/usr/lib
 
-if [[ -z $1 || $1 -eq 2 ]]
+if [[ -z $1 ]]
 then
-        echo "Please enter 1, 3, or 4 (Intel SDK, CUDA, OCLGrind) as an argument"
+        echo "Please enter 1, 2, 3, or 4 (Intel SDK, fpga, CUDA, OCLGrind) as an argument"
         return
 fi
 
@@ -30,9 +30,11 @@ elif [ $1 == "2" ];
 then
         export PATH=:${PREVPATH}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-        export ABC="ASD"
-	export OCL_INCL=/tools/reconfig/intel/18.0/hld/host/include
-	# export OCL_INCL=/tools/reconfig/intel/18.0/hld/host/include20
+        export ABC=ASD
+        # this one does not seem to not work
+	# export OCL_INCL=/tools/reconfig/intel/18.0/hld/host/include
+        # this one seems to not work
+	export OCL_INCL=/tools/reconfig/intel/18.0/hld/host/include20
         export OCL_LIB=/tools/reconfig/intel/18.0/hld/host/linux64/lib
         # export OCL_LIB=/tools/reconfig/intel/18.0/hld/host/arm32/lib
 elif [ $1 == "3" ];

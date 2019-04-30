@@ -7,7 +7,7 @@
 #define SGTYPE_H
 #include <assert.h>
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL) || defined(USE_FPGA)
 #include "cl-helper.h"
 static_assert(sizeof(cl_ulong) == sizeof(unsigned long), "Due to size differences between cl_ulong and unsigned long, we cannot compile with OpenCL support on your system");
 static_assert(sizeof(cl_double) == sizeof(double), "Due to size differences between cl_double and double, we cannot compile with OpenCL support on your system");

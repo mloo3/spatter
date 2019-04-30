@@ -19,7 +19,8 @@
 // This agreement shall be governed in all respects by the laws of the State of California and
 // by the laws of the United States of America.
 
-#include "inc/aocl_utils.h"
+// #include "AOCLUtils/inc/aocl_utils.h"
+#include "../inc/aocl_utils.h"
 #include <algorithm>
 #include <stdarg.h>
 
