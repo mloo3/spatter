@@ -1,7 +1,8 @@
 #ifndef WRAPPER_H 
 #define WRAPPER_H
 
-#include "cl-helper.h"
+#include "../opencl/cl-helper.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -154,7 +154,7 @@ void parse_args(int argc, char **argv)
                     backend = SERIAL;
                 }
                 else if(!strcasecmp("FPGA", optarg)){
-                    if (!sg_serial_support()) {
+                    if (!sg_fpga_support()) {
                         error("You did not compile with support for FPGA", 1);
                     }
                     backend = FPGA;

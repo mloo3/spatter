@@ -244,7 +244,7 @@ void _checkError(int line,
     va_end(vl);
 
     // Cleanup and bail.
-    cleanup();
+    // cleanup();
     exit(error);
   }
 }
@@ -364,38 +364,40 @@ cl_device_id *getDevices(cl_platform_id pid, cl_device_type dev_type, cl_uint *n
 }
 
 // Create a program for all devices associated with the context.
-cl_program createProgramFromBinary(cl_context context, const char *binary_file_name, const cl_device_id *devices, unsigned num_devices) {
-  // Early exit for potentially the most common way to fail: AOCX does not exist.
-  if(!fileExists(binary_file_name)) {
-    printf("AOCX file '%s' does not exist.\n", binary_file_name);
-    checkError(CL_INVALID_PROGRAM, "Failed to load binary file");
+extern "C" {
+  cl_program createProgramFromBinary(cl_context context, const char *binary_file_name, const cl_device_id *devices, unsigned num_devices) {
+    // Early exit for potentially the most common way to fail: AOCX does not exist.
+    if(!fileExists(binary_file_name)) {
+      printf("AOCX file '%s' does not exist.\n", binary_file_name);
+      checkError(CL_INVALID_PROGRAM, "Failed to load binary file");
+    }
+
+    // Load the binary.
+    size_t binary_size;
+    scoped_array<unsigned char> binary(loadBinaryFile(binary_file_name, &binary_size));
+    if(binary == NULL) {
+      checkError(CL_INVALID_PROGRAM, "Failed to load binary file");
+    }
+
+    scoped_array<size_t> binary_lengths(num_devices);
+    scoped_array<unsigned char *> binaries(num_devices);
+    for(unsigned i = 0; i < num_devices; ++i) {
+      binary_lengths[i] = binary_size;
+      binaries[i] = binary;
+    }
+
+    cl_int status;
+    scoped_array<cl_int> binary_status(num_devices);
+
+    cl_program program = clCreateProgramWithBinary(context, num_devices, devices, binary_lengths,
+        (const unsigned char **) binaries.get(), binary_status, &status);
+    checkError(status, "Failed to create program with binary");
+    for(unsigned i = 0; i < num_devices; ++i) {
+      checkError(binary_status[i], "Failed to load binary for device");
+    }
+
+    return program;
   }
-
-  // Load the binary.
-  size_t binary_size;
-  scoped_array<unsigned char> binary(loadBinaryFile(binary_file_name, &binary_size));
-  if(binary == NULL) {
-    checkError(CL_INVALID_PROGRAM, "Failed to load binary file");
-  }
-
-  scoped_array<size_t> binary_lengths(num_devices);
-  scoped_array<unsigned char *> binaries(num_devices);
-  for(unsigned i = 0; i < num_devices; ++i) {
-    binary_lengths[i] = binary_size;
-    binaries[i] = binary;
-  }
-
-  cl_int status;
-  scoped_array<cl_int> binary_status(num_devices);
-
-  cl_program program = clCreateProgramWithBinary(context, num_devices, devices, binary_lengths,
-      (const unsigned char **) binaries.get(), binary_status, &status);
-  checkError(status, "Failed to create program with binary");
-  for(unsigned i = 0; i < num_devices; ++i) {
-    checkError(binary_status[i], "Failed to load binary for device");
-  }
-
-  return program;
 }
 
 // Loads a file in binary form.
@@ -549,6 +551,23 @@ void waitMilliseconds(unsigned ms) {
 void oclContextCallback(const char *errinfo, const void *, size_t, void *) {
   printf("Context callback: %s\n", errinfo);
 }
+
+
+// // Free the resources allocated during initialization
+// void cleanup() {
+//   if(kernel) {
+//     clReleaseKernel(kernel);
+//   }
+//   if(program) {
+//     clReleaseProgram(program);
+//   }
+//   if(queue) {
+//     clReleaseCommandQueue(queue);
+//   }
+//   if(context) {
+//     clReleaseContext(context);
+//   }
+// }
 
 } // ns aocl_utils
 

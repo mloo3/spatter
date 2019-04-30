@@ -133,6 +133,8 @@ void print_sizet(size_t *buf, size_t len){
     printf("\n");
 }
 
+/* void cleanup(); */
+
 int main(int argc, char **argv)
 {
 
@@ -622,5 +624,24 @@ int main(int argc, char **argv)
         }
     }
   }//end if validate
+/* #ifdef USE_FPGA */
+/*   cleanup(); */
+/* #endif */
 
 } //end main
+
+/* // Free the resources allocated during initialization */
+/* void cleanup() { */
+/*   if(kernel) { */
+/*     clReleaseKernel(kernel); */
+/*   } */
+/*   #<{(| if(program) { |)}># */
+/*   #<{(|   clReleaseProgram(program); |)}># */
+/*   #<{(| } |)}># */
+/*   if(queue) { */
+/*     clReleaseCommandQueue(queue); */
+/*   } */
+/*   if(context) { */
+/*     clReleaseContext(context); */
+/*   } */
+/* } */

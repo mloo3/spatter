@@ -27,13 +27,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-//!!
 #include <string>
 
 #include "CL/opencl.h"
 
 // This is assumed to be externally provided by the application.
-extern void cleanup();
+// extern void cleanup();
 
 namespace aocl_utils {
 
@@ -116,6 +115,8 @@ void waitMilliseconds(unsigned ms);
 // OpenCL context callback function that simply prints the error information
 // to stdout (via printf).
 void oclContextCallback(const char *errinfo, const void *, size_t, void *);
+
+// void cleanup()
 
 } // ns aocl_utils
 
