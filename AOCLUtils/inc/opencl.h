@@ -28,10 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 //!!
-#ifdef __cplusplus
 #include <string>
-#endif
-#include "string.h"
 
 #include "CL/opencl.h"
 
@@ -75,7 +72,7 @@ cl_device_id *getDevices(cl_platform_id pid, cl_device_type dev_type, cl_uint *n
 // Create a OpenCL program from a binary file.
 // The program is created for all given devices associated with the context. The same
 // binary is used for all devices.
-cl_program createProgramFromBinary(cl_context context, const char *binary_file_name, const cl_device_id *devices, unsigned num_devices);
+// cl_program createProgramFromBinary(cl_context context, const char *binary_file_name, const cl_device_id *devices, unsigned num_devices);
 
 // Load binary file.
 // Return value must be freed with delete[].

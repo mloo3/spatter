@@ -195,7 +195,7 @@ size_t trace_indices( sgIdx_t *idx, size_t len, struct trace tr) {
     if( npages ) free(pages);
     return max;
 }
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL) || defined(USE_FPGA)
 cl_mem clCreateBufferSafe(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr){
     cl_int err;
     cl_mem buf = clCreateBuffer(context, flags, size, host_ptr, &err);

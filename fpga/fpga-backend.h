@@ -9,7 +9,7 @@
 
 #include "../opencl/cl-helper.h"
 // !!
-#include "aocl-wrapper.h"
+// #include "aocl-wrapper.h"
 #include "sgtype.h"
 #include "sgbuf.h"
 

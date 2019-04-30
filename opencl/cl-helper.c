@@ -28,7 +28,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "../AOCLUtils/inc/aocl_utils.h"
+#include "../fpga/wrapper.h"
 
 
 
@@ -419,12 +419,19 @@ cl_kernel kernel_from_string(cl_context ctx,
     options = NULL;
   }
 
+
+  cl_device_id *devices =
+    (cl_device_id *) malloc(sizeof(cl_device_id));
+  CHECK_SYS_ERROR(!devices, "allocating device array");
+
+
   cl_int status;
+  cl_program program;
   if (use_fpga == 1){
     // does not work with multiple devices
-    cl_program program = createProgramFromBinary(ctx, knl_name, &device, sizes);
+    program = createProgramFromBinary(ctx, knl_name, devices, sizes);
   } else {
-    cl_program program = clCreateProgramWithSource(ctx, 1, &knl, sizes, &status);
+    program = clCreateProgramWithSource(ctx, 1, &knl, sizes, &status);
   }
   CHECK_CL_ERROR(status, "clCreateProgramWithSource");
 
