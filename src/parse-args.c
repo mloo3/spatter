@@ -329,6 +329,15 @@ void parse_args(int argc, char **argv)
     } else if (kernel == SG) {
         sprintf(kernel_name, "%s%zu", "sg", vector_len);
     }
+#ifdef USE_FPGA
+    if (kernel == SCATTER) {
+        sprintf(kernel_name, "%s", "scatter");
+    } else if (kernel == GATHER) {
+        sprintf(kernel_name, "%s", "../bin/kernels_loop.aocx");
+    } else if (kernel == SG) {
+        sprintf(kernel_name, "%s", "sg");
+    }
+#endif
 
     if (!strcasecmp(kernel_file, "NONE")) {
         error("Kernel file unspecified, guessing kernels/kernels_vector.cl", 0);

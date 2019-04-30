@@ -419,17 +419,70 @@ cl_kernel kernel_from_string(cl_context ctx,
     options = NULL;
   }
 
+/*  // Get the OpenCL platform. */
+/*   platform = findPlatform("Intel"); */
+/*   if(platform == NULL) { */
+/*     printf("ERROR: Unable to find Intel FPGA OpenCL platform.\n"); */
+/*     return false; */
+/*   } */
+/*  */
+/*   //number devices */
+/*   cl_uint num_devices; */
+/*   devices = getDevices(platform, CL_DEVICE_TYPE_ALL, &num_devices); */
 
-  cl_device_id *devices =
-    (cl_device_id *) malloc(sizeof(cl_device_id));
-  CHECK_SYS_ERROR(!devices, "allocating device array");
+
+  // get number of platforms
+  cl_uint plat_count;
+  CALL_CL_GUARDED(clGetPlatformIDs, (0, NULL, &plat_count));
+
+  // allocate memory, get list of platforms
+  cl_platform_id *platforms =
+    (cl_platform_id *) malloc(plat_count*sizeof(cl_platform_id));
+  CHECK_SYS_ERROR(!platforms, "allocating platform array");
+
+  CALL_CL_GUARDED(clGetPlatformIDs, (plat_count, platforms, NULL));
+
+  cl_device_id *devices;
+  // iterate over platforms
+  for (cl_uint i = 0; i < 1; ++i)
+  {
+    // get platform vendor name
+    char buf[MAX_NAME_LEN];
+    CALL_CL_GUARDED(clGetPlatformInfo, (platforms[i], CL_PLATFORM_VENDOR,
+          sizeof(buf), buf, NULL));
+    printf("platform %d: vendor '%s'\n", i, buf);
+
+    // get number of devices in platform
+    cl_uint dev_count;
+    CALL_CL_GUARDED(clGetDeviceIDs, (platforms[i], CL_DEVICE_TYPE_ALL,
+          0, NULL, &dev_count));
+
+    devices =
+      (cl_device_id *) malloc(dev_count*sizeof(cl_device_id));
+    CHECK_SYS_ERROR(!devices, "allocating device array");
+
+    // get list of devices in platform
+    CALL_CL_GUARDED(clGetDeviceIDs, (platforms[i], CL_DEVICE_TYPE_ALL,
+          dev_count, devices, NULL));
+
+    // iterate over devices
+    for (cl_uint j = 0; j < dev_count; ++j)
+    {
+      char buf[MAX_NAME_LEN];
+      CALL_CL_GUARDED(clGetDeviceInfo, (devices[j], CL_DEVICE_NAME,
+            sizeof(buf), buf, NULL));
+      printf("  device %d: '%s'\n", j, buf);
+    }
+
+  }
 
 
   cl_int status;
   cl_program program;
   if (use_fpga == 1){
     // does not work with multiple devices
-    program = createProgramFromBinary(ctx, knl_name, devices, sizes);
+    program = createProgramFromBinary(ctx, knl_name, devices, (unsigned)*sizes);
+    /* program = createProgramFromBinary(ctx, knl_name, (cl_device_id *) 0, 1); */
   } else {
     program = clCreateProgramWithSource(ctx, 1, &knl, sizes, &status);
   }
